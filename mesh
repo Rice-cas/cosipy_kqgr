@@ -1,0 +1,81 @@
+import numpy as np
+import xarray as xr
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+from cartopy.io.shapereader import Reader
+from cartopy.feature import ShapelyFeature
+from shapely.geometry import box
+
+# 对 2022 和 2023 年的数据分别求和
+plot_2022 = data_2022.sum(dim='time')
+plot_2023 = data_2023.sum(dim='time')
+
+# 提取相关数据
+lat22 = plot_2022['lat'].values  # 2022年纬度
+lon22 = plot_2022['lon'].values  # 2022年经度
+MB22 = plot_2022['SNOWFALL'].values  # 2022年温度数据（单位：°C）
+surmb22 = plot_2022['surfMB'].values  # 2022年降水数据（单位：mm）
+
+lat23 = plot_2023['lat'].values  # 2023年纬度
+lon23 = plot_2023['lon'].values  # 2023年经度
+MB23 = plot_2023['MB'].values  # 2023年温度数据（单位：°C）
+surmb23 = plot_2023['surfMB'].values  # 2023年降水数据（单位：mm）
+
+# 将值为 0 的地方设置为空
+MB22[MB22 <= 0.5] = np.nan
+surmb22[surmb22 == 0] = np.nan
+MB23[MB23 == 0] = np.nan
+surmb23[surmb23 == 0] = np.nan
+
+# 加载 Shapefile
+shp_path = "/home/fanyu/cosipy-master/data/static/Shapefiles/kqgr.shp"  # 替换为您的 .shp 文件路径
+shapefile = Reader(shp_path)
+shapefile_feature = ShapelyFeature(shapefile.geometries(), ccrs.PlateCarree(), edgecolor='black', facecolor='none')
+
+# 计算 Shapefile 的边界范围
+geometries = list(shapefile.geometries())
+bounds = box(*geometries[0].bounds)  # 取第一个几何体的边界
+for geom in geometries[1:]:
+    bounds = bounds.union(box(*geom.bounds))  # 合并几何体的边界范围
+min_lon, min_lat, max_lon, max_lat = bounds.bounds  # 提取边界坐标
+
+# 创建一个 2x2 的子图（两行两列）
+fig, axes = plt.subplots(2, 2, figsize=(15, 12), subplot_kw={'projection': ccrs.PlateCarree()})
+
+# 绘制 2022 年的 MB分布图
+ax1 = axes[0, 0]
+mesh1 = ax1.pcolormesh(lon22, lat22, MB22, cmap='coolwarm', transform=ccrs.PlateCarree(), shading='auto', edgecolors='black', linewidth=0.2)
+fig.colorbar(mesh1, ax=ax1, label="MB (m)")
+ax1.add_feature(shapefile_feature, linewidth=1)
+ax1.set_extent([min_lon - 0.0005, max_lon + 0.0005, min_lat - 0.0005, max_lat + 0.0005], crs=ccrs.PlateCarree())
+ax1.set_title('2022 MB Distribution')
+
+# 绘制 2023 年的 MB分布图
+ax2 = axes[0, 1]
+mesh2 = ax2.pcolormesh(lon23, lat23, MB23, cmap='coolwarm', transform=ccrs.PlateCarree(), shading='auto', edgecolors='black', linewidth=0.2)
+fig.colorbar(mesh2, ax=ax2, label="MB (m)")
+ax2.add_feature(shapefile_feature, linewidth=1)
+ax2.set_extent([min_lon - 0.0005, max_lon + 0.0005, min_lat - 0.0005, max_lat + 0.0005], crs=ccrs.PlateCarree())
+ax2.set_title('2023 MB Distribution')
+
+# 绘制 2022 年的 SurMB分布图
+ax3 = axes[1, 0]
+mesh3 = ax3.pcolormesh(lon22, lat22, surmb22, cmap='Blues', transform=ccrs.PlateCarree(), shading='auto', edgecolors='black', linewidth=0.2)
+fig.colorbar(mesh3, ax=ax3, label="SurM (mm)")
+ax3.add_feature(shapefile_feature, linewidth=1)
+ax3.set_extent([min_lon - 0.0005, max_lon + 0.0005, min_lat - 0.0005, max_lat + 0.0005], crs=ccrs.PlateCarree())
+ax3.set_title('2022 SurM Distribution')
+
+# 绘制 2023 年的 SurMB分布图
+ax4 = axes[1, 1]
+mesh4 = ax4.pcolormesh(lon23, lat23, surmb23, cmap='Blues', transform=ccrs.PlateCarree(), shading='auto', edgecolors='black', linewidth=0.2)
+fig.colorbar(mesh4, ax=ax4, label="SurM (mm)")
+ax4.add_feature(shapefile_feature, linewidth=1)
+ax4.set_extent([min_lon - 0.0005, max_lon + 0.0005, min_lat - 0.0005, max_lat + 0.0005], crs=ccrs.PlateCarree())
+ax4.set_title('2023 SurM Distribution')
+
+# 调整布局
+plt.tight_layout()
+
+# 显示图像
+plt.show()

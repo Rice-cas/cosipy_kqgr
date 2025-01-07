@@ -1,0 +1,108 @@
+import pandas as pd
+import numpy as np
+
+# 定义海拔带的区间
+start, end, step = 5500, 5900, 10
+bins = np.arange(start, end + step, step)  # 创建分段区间
+bin_labels = [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins) - 1)]  # 区间标签
+
+# 创建包含海拔带标签的 DataFrame
+data_dict = {
+    "H_zone": bin_labels,  # 海拔带的区间标签
+    "MB": [0] * len(bin_labels),  # 初始化 MB 列
+    "count": [0] * len(bin_labels)  # 用于统计每个海拔带的点数
+}
+h_zone_df = pd.DataFrame(data_dict)
+
+# 将 Elevation 列按区间分类
+df["H_zone"] = pd.cut(df["Elevation"], bins=bins, labels=bin_labels, right=False)
+
+# 按区间统计 MB 的总和和点数
+grouped = df.groupby("H_zone").agg(
+    MB_sum=("MB", "sum"),
+    count=("MB", "size")
+).reset_index()
+
+# 合并统计结果到 h_zone_df
+h_zone_df = h_zone_df.merge(grouped, on="H_zone", how="left")
+
+# 填充 NaN 值为 0（如果某些区间没有数据）
+h_zone_df["MB_sum"].fillna(0, inplace=True)
+h_zone_df["count"].fillna(0, inplace=True)
+
+# 更新 MB 和 count 列
+h_zone_df["MB"] = h_zone_df["MB_sum"]
+h_zone_df.drop(columns=["MB_sum"], inplace=True)  # 删除临时列
+
+# 输出结果
+print(h_zone_df)
+
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+
+# Sample data for illustration (replace with your actual DataFrame)
+data = {
+    'H_zone': ['Zone A', 'Zone B', 'Zone C', 'Zone D', 'Zone E'],
+    'count': [10, 20, 15, 25, 30],
+    'MB_avg': [0.5, 1.5, 1.0, 2.5, 3.0]
+}
+df_plot = pd.DataFrame(data)
+
+# Calculate percentage
+df_plot['percent'] = df_plot['count'] / df_plot['count'].sum()
+
+# Set the font to Arial globally
+plt.rcParams['font.family'] = 'Arial'
+
+# Create the figure and the first axis
+fig, ax1 = plt.subplots(figsize=(6, 6))
+
+# Plot the barplot
+sns.barplot(x='percent', y='H_zone', data=df_plot, ax=ax1, alpha=0.6, color='skyblue')
+
+# Set axis labels
+ax1.set_xlabel('Percent', fontsize=14)
+ax1.set_ylabel('Elevation Zone', fontsize=14)
+
+# Set y-axis labels and show every third label
+ax1.set_yticks(df_plot['H_zone'][::3])  # Show every third label
+ax1.set_yticklabels(df_plot['H_zone'][::3].str[:4], fontsize=12)  # Show first four characters of each label
+
+# Set x-ticks for ax1 with numpy.arange() for floating-point steps
+ax1.set_xticks(np.arange(0, df_plot['percent'].max(), 0.02))  # Adjust step size here
+ax1.set_xlim(0, 0.2)
+
+# Adjust x-tick labels font size using tick_params
+ax1.tick_params(axis='x', labelsize=12)  # Set the font size for x-tick labels
+
+# Create the second axis, sharing the y-axis
+ax2 = ax1.twiny()
+
+# Plot the line plot on ax2
+ax2.plot(df_plot["MB_avg"], df_plot['H_zone'], color='orange', marker='o', label='MB', linestyle='-', linewidth=2)
+
+# Adjust the xlabel position on ax2:
+ax2.set_xlabel("MB_avg", fontsize=14, loc='center')  # Center the label
+
+# Manually adjust the label position to be to the right, but still centered
+ax2.xaxis.set_label_coords(0.95, -0.1)  # Adjusted to be rightward (0.95 is towards the right, -0.1 for vertical shift)
+
+# Reverse the x-axis on ax2 by setting limits and ticks accordingly
+ax2.set_xlim(-5, 0.5)  # Reverse the x-axis direction
+
+# Set x-ticks for ax2, with a step size for better visualization
+ax2.set_xticks(np.arange(-2.5, 1, 0.5))
+
+# Add legend
+ax2.legend(loc='upper right', fontsize=12)
+
+# Adjust layout
+plt.tight_layout()
+
+# Display the plot
+plt.show()

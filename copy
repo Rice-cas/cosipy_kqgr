@@ -1,0 +1,108 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
+# Assuming plot is the dataframe df_month
+plot = df_month
+
+# 设置时间戳为 x 轴
+timestamps = plot['year_month']
+
+# 设置全局字体大小为12
+plt.rcParams['font.family'] = 'Arial'
+
+# 设置饱和度适中的调色板
+colors = {
+    'SNOWFALL': '#5cb0c3',  # 温和的中蓝色
+    'REFREEZE': '#ccd376',  # 柔和的中绿色
+    'SUBLIMATION': '#8498ab',  # 温暖的橙色
+    'surfM': '#FF8AAE',  # 中等鲜艳的红色
+    'subM': '#f5be8f',  # 柔和的紫色
+    'surfMB': '#525252',  # 深灰色
+    'inMB': '#3b8f7b'  # 新的曲线颜色 (深绿色)
+}
+
+
+
+# 创建一个子图
+fig, ax1 = plt.subplots(figsize=(16, 8))
+
+# 创建堆积柱状图
+ax1.bar(timestamps, plot['SNOWFALL'], label='Snowfall', color=colors['SNOWFALL'])
+ax1.bar(timestamps, plot['REFREEZE'], bottom=plot['SNOWFALL'], label='Refreeze', color=colors['REFREEZE'])
+ax1.bar(timestamps, plot['SUBLIMATION'], bottom=0, label='Sublimation', color=colors['SUBLIMATION'])
+ax1.bar(timestamps, -plot['surfM'], bottom=plot['SUBLIMATION'], label='Surface melting', color=colors['surfM'])
+ax1.bar(timestamps, -plot['subM'], bottom=plot['SUBLIMATION'] - plot['surfM'], label='Subsurface melting', color=colors['subM'])
+
+# 设置标题和标签
+ax1.set_ylabel('Mass change (mm)')
+ax1.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+
+# 添加竖直的网格线
+ax1.grid(True, axis='x', linestyle='--', linewidth=0.5, color='gray')  # 竖直网格线
+
+# 在 ax2 中添加 scatter 图
+fig, ax2 = plt.subplots(figsize=(16, 8))
+
+# 将 ax2 中的线图转换为 scatter 图
+ax2.scatter(timestamps, plot['surfMB'], label='Surface mass balance', color='#1d9bf7', alpha=1, s=80, edgecolor='black', marker='o')
+ax2.scatter(timestamps, plot['MB'], label='Total mass balance', color='#EC3E31', alpha=1, s=80, edgecolor='black', marker='o')
+ax2.scatter(timestamps, plot['intMB'], label='InMB', color=colors['inMB'], alpha=1, s=80, edgecolor='black', marker='s')
+
+# 设置标题和标签
+ax2.set_xlabel('Date')
+ax2.set_ylabel('Mass change (mm)')
+
+# 添加横线 y=0
+ax2.axhline(y=0, color='gray', linestyle='--', linewidth=1)  # 添加 y=0 的横线
+
+# 添加竖直的网格线
+ax2.grid(True, axis='x', linestyle='--', linewidth=0.5, color='gray')  # 竖直网格线
+
+# 设置 X 轴的 tick 间隔（比如每隔 3 个标签显示一个）
+tick_interval = 3  # Interval for X-ticks
+ax1.set_xticks(timestamps[::tick_interval])  # 设置 ax1 的 X 轴 ticks
+ax1.set_xticklabels(timestamps[::tick_interval])  # 设置 ax1 的 X 轴 labels
+
+ax2.set_xticks(timestamps[::tick_interval])  # 设置 ax2 的 X 轴 ticks
+ax2.set_xticklabels(timestamps[::tick_interval])  # 设置 ax2 的 X 轴 labels
+
+# 设置 ticks 朝内
+ax1.tick_params(axis='x', direction='in')  # 设置 ax1 的 x 轴 ticks 朝内
+ax1.tick_params(axis='y', direction='in')  # 设置 ax1 的 y 轴 ticks 朝内
+
+ax2.tick_params(axis='x', direction='in')  # 设置 ax2 的 x 轴 ticks 朝内
+ax2.tick_params(axis='y', direction='in')  # 设置 ax2 的 y 轴 ticks 朝内
+
+# 设置 legend
+ax1.legend()
+ax2.legend()
+
+# 显示图表
+plt.tight_layout()
+plt.show()
+
+
+=======================================================
+
+import pandas as pd
+
+# 假设 plot_data 是你原始的数据集
+# 设置时间列为 datetime 格式（如果还没设置）
+plot_data['time'] = pd.to_datetime(plot_data['time'])
+
+# 定义聚合字典，agg_dict 包含你想要的聚合方法
+agg_dict = {
+    'temperature': 'mean',
+    'precipitation': 'sum',
+    # 添加更多的聚合方法
+}
+
+# 按月进行重采样，并使用不同的聚合方法
+df_resampled = plot_data.resample('M', on='time').agg(agg_dict).reset_index()
+
+# 提取年月并创建新的列
+df_resampled['year_month'] = df_resampled['time'].dt.to_period('M')
+
+# 打印结果
+print(df_resampled)

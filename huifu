@@ -1,0 +1,104 @@
+plot_data = data.sum(dim=['lat','lon']).to_dataframe().reset_index()
+plot_data_test = test_data.sum(dim=['lat','lon']).to_dataframe().reset_index()
+
+# 假设 df 是你的 DataFrame，包含所有这些列
+# 定义需要求和和求平均的变量
+sum_vars = [
+    'RRR', 'SNOWFALL', 'RAIN', 'EVAPORATION', 'SUBLIMATION', 
+    'CONDENSATION', 'DEPOSITION', 'REFREEZE', 'subM', 'surfM', 
+    'surfMB', 'MB','intMB'
+]
+
+mean_vars = [
+    'T2', 'LWin', 'H', 'LE', 'B','ALBEDO','LWout','TS', 'G','ME'
+]
+
+# 为 DataFrame 中的列指定不同的聚合方法
+agg_dict = {var: 'sum' for var in sum_vars}
+agg_dict.update({var: 'mean' for var in mean_vars})
+
+# 示例：假设你已经有一个 DataFrame df，并且 TIMESTAMP 列是时间戳
+plot_data['time'] = pd.to_datetime(plot_data['time'])  # 确保 TIMESTAMP 列是 datetime 类型
+
+# 按小时进行重采样，并使用不同的聚合方法
+df_hour = plot_data.resample('H', on='time').agg(agg_dict).reset_index()
+df_month = plot_data.resample('M', on='time').agg(agg_dict).reset_index()
+df_day = plot_data.resample('D', on='time').agg(agg_dict).reset_index()
+df_year = plot_data.resample('Y', on='time').agg(agg_dict).reset_index()
+
+# 提取年月并创建新的列
+df_month['year_month'] = df_month['time'].dt.to_period('M')
+df_month['year_month'] = df_month['year_month'].dt.strftime('%Y-%m')
+
+# 提取年月并创建新的列
+df_year['year'] = df_year['time'].dt.to_period('Y')
+df_year['year'] = df_year['year'].dt.strftime('%Y')
+
+===============================
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 假设 df_month 是你现有的数据框，包含 'year_month', 'LWin', 'LWout', 'LE', 'H', 'MB', 'surfM', 'G'
+
+# 设置时间戳为 x 轴
+timestamps = df_month['year_month']
+
+# 创建图形，包含 6 个子图（1 行 6 列）
+fig, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, 1, figsize=(12, 18), sharex=True)  # sharex=True 确保x轴一致
+
+# 绘制第一个子图：Net Longwave
+ax1.bar(timestamps, df_month['LWin'] + df_month['LWout'], label='SNOWFALL', color='blue')
+ax1.set_title('Net Longwave', fontsize=14)
+ax1.set_ylabel('SNOWFALL Value')
+ax1.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax1.legend(title="SNOWFALL")
+
+# 绘制第二个子图：Latent flux (LE)
+ax2.bar(timestamps, df_month['LE'], label='Latent flux', color='green')
+ax2.set_title('Latent flux (LE)', fontsize=14)
+ax2.set_ylabel('Latent Flux Value')
+ax2.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax2.legend(title="Latent flux")
+
+# 绘制第三个子图：Sensible flux (H)
+ax3.bar(timestamps, df_month['H'], label='Sensible flux', color='orange')
+ax3.set_title('Sensible flux (H)', fontsize=14)
+ax3.set_ylabel('Sensible Flux Value')
+ax3.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax3.legend(title="Sensible flux")
+
+# 绘制第四个子图：散点图（MB）
+ax4.plot(timestamps, df_month['MB'], label='MB', color='black', marker='x')
+ax4.set_title('Mass Balance (MB)', fontsize=14)
+ax4.set_ylabel('Value')
+ax4.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax4.legend(title="MB")
+
+# 绘制第五个子图：散点图（surfM）
+ax5.plot(timestamps, df_month['surfM'], label='Surface MB', color='purple', marker='x')
+ax5.set_title('Surface Mass Balance (surfM)', fontsize=14)
+ax5.set_ylabel('Value')
+ax5.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax5.legend(title="Surface MB")
+
+# 绘制第六个子图：Down shortwave flux (G)
+ax6.bar(timestamps, df_month['G'], label='Down shortwave flux', color='red')
+ax6.set_title('Down Shortwave Flux (G)', fontsize=14)
+ax6.set_xlabel('Date', fontsize=12)
+ax6.set_ylabel('Value')
+ax6.axhline(y=0, color='gray', linestyle='-', linewidth=1)  # 添加 y=0 的横线
+ax6.legend(title="Down shortwave flux")
+
+# 添加竖直的网格线
+for ax in [ax1, ax2, ax3, ax4, ax5, ax6]:
+    ax.grid(True, axis='x', linestyle='--', linewidth=0.5, color='gray')  # 竖直网格线
+    # 设置 X 轴的 tick 间隔（比如每隔 3 个标签显示一个）
+    ax.set_xticks(timestamps[::3])  # 每隔 3 个时间点显示一个标签
+    ax.set_xticklabels(timestamps[::3], rotation=45)  # 设置相应的标签
+
+# 自动调整布局，避免子图重叠
+plt.tight_layout()
+
+# 显示图表
+plt.show()
