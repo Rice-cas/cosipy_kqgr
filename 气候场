@@ -1,0 +1,88 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.io.shapereader import Reader
+from cartopy.feature import ShapelyFeature
+
+# 假设ds已经是一个xarray数据集，包含时间、气压层等信息
+
+# 定义星星位置的经纬度
+star_latitude = 29.860
+star_longitude = 90.6
+# 定义年份和月份范围
+years = np.arange(2022, 2024)
+months = np.arange(1, 13)
+ds_sum = ds.sum(dim='pressure_level')
+for year in years:
+    for month in months:
+        # 构建时间字符串 'YYYY-MM-DDTHH:MM:SS'
+        time = f'{year}-{month:02d}-01T12:00:00.000000000'
+        
+        # 选择特定时间和气压层
+        ds_selected = ds_sum.sel(valid_time=time)  # 示例：2022年1月1日0时，850hPa
+        
+        # 获取数据变量
+        u = ds_selected['u']  # 东西向风速
+        v = ds_selected['v']  # 南北向风速
+        q = ds_selected['q']  # 比湿
+        
+        # 获取经度和纬度，假设这些是坐标维度
+        longitude = u.longitude
+        latitude = u.latitude
+        
+        # 计算水汽通量
+        qu = q * u * 100  # 东西向水汽通量
+        qv = q * v * 100  # 南北向水汽通量
+        
+        wvf = np.sqrt(qu**2 + qv**2)
+            # 将小于某个阈值的值设为NaN（例如小于10的值）
+        threshold = 1
+        wvf_calibrated = np.where(wvf < threshold, np.nan, wvf) 
+        # 创建地图投影
+        fig, ax = plt.subplots(figsize=(10, 10), dpi=400, subplot_kw={'projection': ccrs.PlateCarree()})
+
+        # 绘制水汽通量场（wvf）
+        contour = ax.pcolormesh(longitude, latitude, wvf, cmap="RdBu_r", transform=ccrs.PlateCarree())
+
+        # 在ax上绘制等高线图
+        contour_levels = np.linspace(0, 10, 25)
+        ax.contour(longitude, latitude, wvf, levels=contour_levels, colors='grey', linewidths=0.5, transform=ccrs.PlateCarree())
+
+        # 添加颜色条
+        cbar = fig.colorbar(contour, ax=ax, orientation='vertical', label='Water Vapor Flux (g/cm/s)',pad=0.02, aspect=30, shrink=0.6)
+
+        # 使用quiver函数绘制风场
+        Q = ax.quiver(longitude[::10], latitude[::10], u[::10, ::10], v[::10, ::10], scale=1200, alpha=0.5,color="red", transform=ccrs.PlateCarree())
+
+    
+        # 添加青藏高原边界
+        tibetan_plateau_shapefile = "/mnt/d/科研文件夹/青藏高原gis数据/青藏高原边界数据总集/TPBoundary_new(2021)/TPBoundary_new(2021).shp"  
+        # 你的青藏高原边界 shapefile 路径
+        tibetan_plateau = ShapelyFeature(Reader(tibetan_plateau_shapefile).geometries(),
+                                        ccrs.PlateCarree(), edgecolor='red', facecolor='none')
+        ax.add_feature(tibetan_plateau, linewidth=2)
+        # 添加世界行政区划
+        #ax.add_feature(cfeature.BORDERS, linestyle='-', linewidth=1.2)  # 绘制国家边界
+        ax.add_feature(cfeature.COASTLINE, linewidth=1.2)  # 绘制海岸线
+
+        # 添加星星标记
+        ax.plot(star_longitude, star_latitude, marker='+', color='red', markersize=8, transform=ccrs.PlateCarree(), label='Star Location')
+        
+        # 添加坐标轴标签
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title(f"Water Vapor Flux- {time}")
+
+        # 调整布局以避免重叠和裁剪
+        fig.tight_layout()
+
+        # 保存图像，文件名包括年月和气压层
+        plt.savefig(f"./monthly/iwv_{year}_{month:02d}.jpg", dpi=500)
+        plt.close()设置图片边缘窄 
