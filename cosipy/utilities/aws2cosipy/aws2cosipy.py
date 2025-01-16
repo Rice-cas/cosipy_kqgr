@@ -525,27 +525,27 @@ def create_2D_input(
     time_index = len(dso.time)
     lat_index = len(ds.lat)
     lon_index = len(ds.lon)
-    T_interp = set_zero_field(time_index, lat_index, lon_index)
-    RH_interp = set_zero_field(time_index, lat_index, lon_index)
-    U_interp = set_zero_field(time_index, lat_index, lon_index)
+    T_interp = np.full([time_index, lat_index, lon_index], np.nan)
+    RH_interp = np.full([time_index, lat_index, lon_index], np.nan)
+    U_interp = np.full([time_index, lat_index, lon_index], np.nan)
     G_interp = np.full([time_index, lat_index, lon_index], np.nan)
-    P_interp = set_zero_field(time_index, lat_index, lon_index)
+    P_interp = np.full([time_index, lat_index, lon_index], np.nan)
 
     if _cfg.names["RRR_var"] in df:
         RRR = df[_cfg.names["RRR_var"]]  # Precipitation
-        RRR_interp = set_zero_field(time_index, lat_index, lon_index)
+        RRR_interp = np.full([time_index, lat_index, lon_index], np.nan)
 
     if _cfg.names["SNOWFALL_var"] in df:
         SNOWFALL = df[_cfg.names["SNOWFALL_var"]]  # Snowfall
-        SNOWFALL_interp = set_zero_field(time_index, lat_index, lon_index)
+        SNOWFALL_interp = np.full([time_index, lat_index, lon_index], np.nan)
 
     if _cfg.names["LWin_var"] in df:
         LW = df[_cfg.names["LWin_var"]]  # Incoming longwave radiation
-        LW_interp = set_zero_field(time_index, lat_index, lon_index)
+        LW_interp = np.full([time_index, lat_index, lon_index], np.nan)
 
     if _cfg.names["N_var"] in df:
         N = df[_cfg.names["N_var"]]  # Cloud cover fraction
-        N_interp = set_zero_field(time_index, lat_index, lon_index)
+        N_interp = np.full([time_index, lat_index, lon_index], np.nan)
 
     # Interpolate point data to grid
     print("Interpolate CR file to grid")
