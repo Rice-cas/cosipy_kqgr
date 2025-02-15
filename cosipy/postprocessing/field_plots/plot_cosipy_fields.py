@@ -291,8 +291,8 @@ def plotMesh(
     filename: str,
     pdate: str,
     var: str = None,
-    mean: bool = False,
-    save: bool = False,
+    mean: bool = True,
+    save: bool = True,
 ):
     """This creates a simple mesh plot of the 2D fields.
 
@@ -337,8 +337,8 @@ def plotContour(
     filename: str,
     pdate: str,
     var: str = None,
-    mean: bool = False,
-    save: bool = False,
+    mean: bool = True,
+    save: bool = True,
 ):
     """This creates a simple contour plot of the 2D fields.
 

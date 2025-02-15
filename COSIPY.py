@@ -44,7 +44,7 @@ from cosipy.config import Config, SlurmConfig
 from cosipy.constants import Constants
 from cosipy.cpkernel.cosipy_core import cosipy_core
 from cosipy.cpkernel.io import IOClass
-
+print(type(Constants.albedo_fresh_snow))
 
 def main():
     Config()

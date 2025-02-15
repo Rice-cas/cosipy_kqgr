@@ -8,6 +8,7 @@ albedo_mod_snow_aging = Constants.albedo_mod_snow_aging
 snow_ice_threshold = Constants.snow_ice_threshold
 albedo_firn = Constants.albedo_firn
 albedo_fresh_snow = Constants.albedo_fresh_snow
+
 albedo_ice = Constants.albedo_ice
 albedo_mod_snow_depth = Constants.albedo_mod_snow_depth
 dt = Constants.dt

@@ -10,3 +10,15 @@ python -m cosipy.utilities.createStatic.create_static_file
 python -m COSIPY
 
 conda activate kqgr
+
+
+
+ python -m cosipy.postprocessing.profile_plots.plot_profiles \
+
+python plot_cosipy_fields.py \
+    -i "../../../data/output/kqgr_test_20210607-20240925.nc"\
+    -d "2021-07-05" \
+    -v "surfMB" \
+    -t 1 \
+    -m \
+    -s
