@@ -137,6 +137,7 @@ class IOClass:
             time_end = Config.time_end
             start_timestamp = self.get_datetime(time_start)
             end_timestamp = self.get_datetime(time_end)
+            start_timestamp = start_timestamp.astype('datetime64[us]').tolist()
             timestamp = start_timestamp.strftime("%Y-%m-%dT%H-%M")
             restart_path = os.path.join(
                 Config.data_path, "restart", f"restart_{timestamp}.nc"

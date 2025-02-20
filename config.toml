@@ -1,11 +1,11 @@
 [SIMULATION_PERIOD]
-time_start = "2022-06-07T00:00"
-time_end = "2022-06-10T00:00"
+time_start = "2019-01-01T00:00"
+time_end = "2020-01-01T00:00"
 
 [FILENAMES]
 data_path = "./data/"
-input_netcdf = "KQGR/kqgr_20210607_20240920.nc"
-output_prefix = "kqgr_as0.81_af0.51_ai0.27_sa15_sd5"
+input_netcdf = "ERA5/ERA5_2019.nc"
+output_prefix = "ERA5_2019"
 
 [RESTART]
 restart = false

@@ -47,30 +47,32 @@ def run_cosipy_script():
 # Define file paths
 constant_file = 'constants.toml'
 config_file = 'config.toml'
+# Flag to track if this is the first run
+first_run = True  # Initialize the flag to True for the first run
 
-# Define new values for parameters in both files
 # Loop to modify parameters in both TOML files and run COSIPY.py
-for albedo_fresh_snow in np.arange(0.8, 0.82, 0.01):
-    for albedo_firn in np.arange(0.5, 0.52, 0.01):
-        for albedo_ice in np.arange(0.25, 0.27, 0.01):
-            for albedo_mod_snow_aging in np.arange(15, 17, 2):
-                for albedo_mod_snow_depth in np.arange(5, 7, 2):
-                    # Use np.arange for floating-point values
-                    # Update parameters in constants.toml
+for year in range(2015, 2020):
+    # Update 'restart' parameter based on whether it's the first run
+    if first_run:
+        update_config_file(config_file, 'RESTART', 'restart', False)  # Set to False on first run
+        first_run = True  # Set the flag to False after the first run
+            # Update parameters in config.toml
+        update_config_file(config_file, 'FILENAMES', 'output_prefix', f'ERA5_{year}')
+        update_config_file(config_file, 'FILENAMES', 'input_netcdf', f'ERA5/ERA5_{year}.nc')
+        update_config_file(config_file, 'SIMULATION_PERIOD', 'time_start', f'{year}-01-01T00:00')
+        update_config_file(config_file, 'SIMULATION_PERIOD', 'time_end', f'{year+1}-01-01T00:00')
 
-                    update_config_file(constant_file, 'CONSTANTS', 'albedo_fresh_snow', albedo_fresh_snow)
-                    update_config_file(constant_file, 'CONSTANTS', 'albedo_firn', albedo_firn)
-                    update_config_file(constant_file, 'CONSTANTS', 'albedo_ice', albedo_ice)
-                    update_config_file(constant_file, 'CONSTANTS', 'albedo_mod_snow_aging', albedo_mod_snow_aging)
-                    update_config_file(constant_file, 'CONSTANTS', 'albedo_mod_snow_depth', albedo_mod_snow_depth)
-                    
-                    # Update parameters in config.toml
-                    update_config_file(config_file, 'FILENAMES', 'output_prefix', 
-                        f'kqgr_as{albedo_fresh_snow}_af{albedo_firn}_ai{albedo_ice}_sa{albedo_mod_snow_aging}_sd{albedo_mod_snow_depth}')
+    else:
+        update_config_file(config_file, 'RESTART', 'restart', True)  # Set to True on subsequent runs
+        update_config_file(config_file, 'FILENAMES', 'output_prefix', f'ERA5_{year}')
+        update_config_file(config_file, 'FILENAMES', 'input_netcdf', f'ERA5/ERA5_{year}.nc')
+        update_config_file(config_file, 'SIMULATION_PERIOD', 'time_start', f'{year-1}-12-31T23:00')
+        update_config_file(config_file, 'SIMULATION_PERIOD', 'time_end', f'{year+1}-01-01T00:00')
 
-                    
-                    # Run COSIPY.py script
-                    run_cosipy_script()
 
-                    # Optional: sleep for a short period before the next run
-                    time.sleep(10)  # Adjust as needed
+
+    # Run COSIPY.py script
+    run_cosipy_script()
+
+    # Optional: sleep for a short period before the next run
+    time.sleep(8)  # Adjust as needed

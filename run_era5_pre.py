@@ -1,11 +1,11 @@
 import subprocess
 
 # 定义年份范围
-years = range(2021, 2025)  # 2021年到2024年
+years = range(2000, 2024)  # 2021年到2024年
 
 # 基础路径
-input_base_path = "./data/input/ERA5/kqgr_{}.csv"
-output_base_path = "./data/input/ERA5/kqgr_{}.nc"
+input_base_path = "./data/input/ERA5/ERA5_{}.csv"
+output_base_path = "./data/input/ERA5/ERA5_{}.nc"
 static_path = "./data/static/KQGR.nc"
 
 # 遍历每一年
@@ -16,7 +16,7 @@ for year in years:
     
     # 动态设置开始日期和结束日期
     start_date = f"{year}0101"  # 每年的1月1日
-    end_date = f"{year}1231"    # 每年的12月31日
+    end_date = f"{year+1}0102"    # 每年的12月31日
     
     # 构建命令
     command = [
@@ -29,7 +29,7 @@ for year in years:
     ]
     
     # 打印命令（可选，用于调试）
-    print("Executing command:", " ".join(command))
+    print("Executing command for {}:".format(year))
     
     # 执行命令
     result = subprocess.run(command, capture_output=True, text=True)
